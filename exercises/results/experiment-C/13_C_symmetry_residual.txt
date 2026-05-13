@@ -1,0 +1,2 @@
+Symmetry residual: 0.0004  left norm: 7.1470  ratio: 0.0001
+(ratio < 0.1 = strong symmetry; > 0.3 = constraint too weak)

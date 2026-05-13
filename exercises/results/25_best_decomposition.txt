@@ -1,0 +1,13 @@
+Best decomposition — selected from data, two criteria.
+
+1. High-fidelity (sim >= 0.99, max spec):
+  B_L1_output_10.0
+    sim=0.9949  acc=0.9674  spec=0.5863  spec_H=0.5950
+    notes: L1 on D, λ=10.0
+
+2. Maximum-spec (acc > 0.85, max spec):
+  F_joint_r32_s42
+    sim=0.9678  acc=0.9452  spec=0.6266  spec_H=0.5538
+    notes: joint L1-on-D λ=10.0, rank=32, seed=42
+
+Headline winner (high-fidelity): B_L1_output_10.0
