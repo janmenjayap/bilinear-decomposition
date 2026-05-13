@@ -150,7 +150,9 @@ class Transformer(PreTrainedModel):
         
         self.lm_head = nn.Linear(config.d_model, tokenizer.vocab_size, bias=False)
         self.criterion = nn.CrossEntropyLoss()
-        
+
+        self.post_init()
+
     def forward(self, input_ids=None, labels=None, attention_mask=None, **kwargs):
         x = self.transformer.wte(input_ids)
         
