@@ -32,6 +32,7 @@ Thumbs.db
 
 # Datasets and model checkpoints
 data/*
+**/data/
 _checkpoints/
 *.pt
 *.ckpt
