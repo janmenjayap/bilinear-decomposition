@@ -1,46 +1,74 @@
-# Bilinear MLPs enable weight-based mechanistic interpretability
+# Sparse Decomposition of Bilinear MLP Weights
 
-This is the official code repository for the above paper [[link](https://arxiv.org/pdf/2410.08417)].
+My solution to the **sparse-decomposition exercise** from
+[`tdooms/bilinear-decomposition`](https://github.com/tdooms/bilinear-decomposition) —
+the official code repository for Pearce, Dooms, Rigg, Oramas & Sharkey,
+*"Bilinear MLPs enable weight-based mechanistic interpretability"*
+([arXiv:2410.08417](https://arxiv.org/abs/2410.08417)).
 
-## Abstract
+The exercise ships a skeleton notebook and a `Sparse` CPD model. My contribution is the
+end-to-end implementation, the six-prior experiment suite, and the analysis.
 
-A mechanistic understanding of how MLPs do computation in deep neural networks
-remains elusive. Current interpretability work can extract features from
-hidden activations over an input dataset but generally cannot explain how MLP
-weights construct features. One challenge is that element-wise nonlinearities
-introduce higher-order interactions and make it difficult to trace computations
-through the MLP layer. In this paper, we analyze bilinear MLPs, a type of
-Gated Linear Unit (GLU) without any element-wise nonlinearity that nevertheless
-achieves competitive performance. Bilinear MLPs can be fully expressed in
-terms of linear operations using a third-order tensor, allowing flexible analysis of
-the weights. Analyzing the spectra of bilinear MLP weights using eigendecomposition
-reveals interpretable low-rank structure across toy tasks, image classification, and language modeling.
-We use this understanding to craft adversarial
-examples, uncover overfitting, and identify small language model circuits directly
-from the weights alone. Our results demonstrate that bilinear layers serve as an
-interpretable drop-in replacement for current activation functions and that weight-based
-interpretability is viable for understanding deep-learning models.
+**→ Full writeup: [`exercises/report.md`](exercises/report.md)**
 
-## Installation
+## What this does
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
+A single-layer bilinear MNIST classifier (test accuracy 0.968) has its computation fully
+described by a symmetric interaction tensor `B ∈ ℝ^{10×784×784}`, where
+`logit_c(x) = Σ_ij B[c,i,j] x_i x_j`. Eigendecomposing each class slice forces orthogonality
+and re-derives shared strokes per class. Instead, I jointly factorise `B` with a CPD,
 
-```bash
-uv sync
+```
+B[c,i,j] ≈ Σ_r L[i,r] R[j,r] D[c,r],
 ```
 
-This creates a virtual environment and installs all dependencies.
+so every neuron is shared across classes through `D`, then test six structural priors to
+find which one yields neurons that are simultaneously faithful, class-specialised, and
+interpretable — and, just as importantly, which interpretability metric to trust.
 
-Run scripts and notebooks with, or just select the venv kernel in VSCode:
+## Results at a glance
+
+Under a strict reconstruction rule (cosine similarity ≥ 0.99):
+
+| Decomposition | similarity | accuracy | specialization |
+|---|---:|---:|---:|
+| Baseline CPD (rank 64, no prior) | 0.9982 | 0.9679 | 0.238 |
+| **L1 on `D` (λ=10)** | **0.9949** | **0.9674** | **0.586** |
+
+- **Positive result.** L1 on the class-participation factor `D` roughly 2.5× the per-neuron
+  class specialization (0.238 → 0.586) for a 0.0005 accuracy cost.
+- **Negative result (the more interesting one).** Input-sparsity, symmetry, non-negativity,
+  and rank constraints all leave the headline specialization *flat*, even though each visibly
+  moves its own target metric. Conclusion: **`D`-sparsity measures class binding, not feature
+  meaningfulness — and the two are dissociable.**
+- **Gauge diagnostic.** A scale-gauge stress test shows the L1 penalty starts gaming the CPD
+  scale invariance past λ=10 (raw `‖D‖₁` flatlines while `‖D‖₁/(‖L‖·‖R‖)` rises), which is
+  exactly where specialization saturates.
+
+See [`exercises/report.md`](exercises/report.md) for the full derivation, all six experiments,
+the seed sweep, and the mechanistic explanations.
+
+## Build & run
+
+The upstream repo uses `uv sync`. On the hardware I ran this on, the pinned CUDA wheels needed
+a conda environment, so I added `setup.sh`:
 
 ```bash
-uv run python <script.py>
+bash setup.sh                              # conda env + pinned torch/torchvision (CUDA 12.6)
+conda activate bilinear-decomposition
+cd exercises
+jupyter nbconvert --to notebook --execute 0_decomposition.ipynb \
+    --output 0_decomposition.executed.ipynb --ExecutePreprocessor.timeout=1800
 ```
 
-## Tutorials
+All figures and metric files are written under `exercises/results/` (MNIST auto-downloads on
+first run). Reproducibility notes — seeds, system requirements, determinism — are in
+[`exercises/report.md` §11](exercises/report.md).
 
-The ``tutorial`` folder contains a series of notebooks, aimed at beginners or people who simply learn quicker by looking at code.
-These documents cover weight-based interpretability from the ground up and provide a step-by-step guide on how to think about bilinear layers.
-The document covers our results on image models and language models.
+## Built on
 
-The tutorials are currently in beta and may be on the short side, if you have any suggestions or critique, let me (@tdooms) know.
+This repository is a fork of [`tdooms/bilinear-decomposition`](https://github.com/tdooms/bilinear-decomposition).
+The `src/` package, the `tutorials/`, the exercise skeleton, and the `Sparse` model are
+**upstream**. My contribution lives in **`exercises/`** (the implemented notebook, all of
+`results/`, and `report.md`) plus the conda `setup.sh`. Full breakdown in
+[`ATTRIBUTION.md`](ATTRIBUTION.md).

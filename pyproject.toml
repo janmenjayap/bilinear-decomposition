@@ -1,7 +1,7 @@
 [project]
 name = "bilinear-decomposition"
 version = "0.1.0"
-description = "Bilinear MLPs enable weight-based mechanistic interpretability"
+description = "Sparse CPD decomposition of bilinear MLP weights (completed exercise; fork of tdooms/bilinear-decomposition)"
 readme = "readme.md"
 requires-python = ">=3.12"
 dependencies = [
