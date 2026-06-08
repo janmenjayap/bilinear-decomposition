@@ -82,7 +82,7 @@ class Model(nn.Module):
         return torch.rand(self.cfg.batch_size, self.cfg.n_inputs, device=self.cfg.device) > self.cfg.sparsity
 
     def fit(self, wd=0.1):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg.lr, weight_decay=wd)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.cfg.lr, weight_decay=wd)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self.cfg.n_epochs)
         
         if self.cfg.seed is not None:
